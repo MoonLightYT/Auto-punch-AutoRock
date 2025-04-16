@@ -3,7 +3,7 @@ local Library = loadstring(game:HttpGet("https://github.com/ActualMasterOogway/F
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
 
--- Main Window
+-- Define the main window
 local Window = Library:CreateWindow{
     Title = "MoonHub",
     SubTitle = "By Godlike",
@@ -16,7 +16,7 @@ local Window = Library:CreateWindow{
     MinimizeKey = Enum.KeyCode.RightControl
 }
 
--- Tabs Definition
+-- Define tabs
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "0" }),
     AutoWeights = Window:AddTab({ Title = "Auto Weights", Icon = "0" }),
@@ -28,7 +28,7 @@ local Tabs = {
     Misc = Window:AddTab({ Title = "Misc", Icon = "0" })
 }
 
--- Toggle Creation for AutoFarm
+-- Toggle creation for AutoFarm
 local Toggle = Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
     Title = "Farm Muscle King Gym Rock",
     Description = "Farm rocks at Muscle King Gym",
@@ -36,18 +36,21 @@ local Toggle = Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
     Callback = function(Value)
         _G.autoFarm = Value
         local player = game.Players.LocalPlayer
-        
+
         if Value then
             while _G.autoFarm do
                 task.wait(0.001)
                 if player.Durability.Value >= 5000000 then
-                    for _, v in pairs(game.Workspace.machinesFolder:GetDescendants()) do
-                        if v.Name == "neededDurability" and v.Value == 5000000 and player.Character:FindFirstChild("LeftHand") and player.Character:FindFirstChild("RightHand") then
-                            firetouchinterest(v.Parent.Rock, player.Character.RightHand, 0)
-                            firetouchinterest(v.Parent.Rock, player.Character.RightHand, 1)
-                            firetouchinterest(v.Parent.Rock, player.Character.LeftHand, 0)
-                            firetouchinterest(v.Parent.Rock, player.Character.LeftHand, 1)
-                            gettool()  -- Ensure gettool is defined properly in your script
+                    for _, machine in pairs(game.Workspace.machinesFolder:GetDescendants()) do
+                        if machine.Name == "neededDurability" and machine.Value == 5000000 then
+                            local rock = machine.Parent.Rock
+                            if player.Character:FindFirstChild("LeftHand") and player.Character:FindFirstChild("RightHand") then
+                                firetouchinterest(rock, player.Character.RightHand, 0)
+                                firetouchinterest(rock, player.Character.RightHand, 1)
+                                firetouchinterest(rock, player.Character.LeftHand, 0)
+                                firetouchinterest(rock, player.Character.LeftHand, 1)
+                                gettool()  -- Ensure gettool is defined properly in your script
+                            end
                         end
                     end
                 end
@@ -66,10 +69,10 @@ local Toggle = Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
                             punch.attackTime.Value = 0
                         end
                     end
-                    wait(0)
+                    task.wait(0)  -- Prefer task.wait to wait() in the context of Roblox
                 end
             end
-            
+
             local function rapidPunch()
                 while _G.fastHitActive do
                     player.muscleEvent:FireServer("punch", "rightHand")
@@ -81,7 +84,7 @@ local Toggle = Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
                             punchTool:Activate()
                         end
                     end
-                    wait(0)
+                    task.wait(0)  -- Prefer task.wait to wait() in the context of Roblox
                 end
             end
             
