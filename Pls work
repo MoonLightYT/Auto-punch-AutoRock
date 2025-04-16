@@ -34,22 +34,65 @@ local Toggle = Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
     Description = "Farm rocks at Muscle King Gym",
     Default = false,
     Callback = function(Value)
-        _G.autoFarm = Value
-        local player = game.Players.LocalPlayer
+       _G.fastHitActive = false
+getgenv().autoFarm = false
 
-        if Value then
-            while _G.autoFarm do
-                task.wait(0.001)
-                if player.Durability.Value >= 5000000 then
-                    for _, machine in pairs(game.Workspace.machinesFolder:GetDescendants()) do
-                        if machine.Name == "neededDurability" and machine.Value == 5000000 then
-                            local rock = machine.Parent.Rock
-                            if player.Character:FindFirstChild("LeftHand") and player.Character:FindFirstChild("RightHand") then
-                                firetouchinterest(rock, player.Character.RightHand, 0)
-                                firetouchinterest(rock, player.Character.RightHand, 1)
-                                firetouchinterest(rock, player.Character.LeftHand, 0)
-                                firetouchinterest(rock, player.Character.LeftHand, 1)
-                                gettool()  -- Ensure gettool is defined properly in your script
+function startAutomation(value)
+    _G.fastHitActive = value
+    getgenv().autoFarm = value
+
+    if value then
+        -- Punch Tool Handler
+        local function equipAndModifyPunch()
+            while _G.fastHitActive do
+                local player = game.Players.LocalPlayer
+                local punch = player.Backpack:FindFirstChild("Punch")
+                if punch then
+                    punch.Parent = player.Character
+                    if punch:FindFirstChild("attackTime") then
+                        punch.attackTime.Value = 0
+                    end
+                end
+                wait()
+            end
+        end
+
+        -- Rapid Punch Activator
+        local function rapidPunch()
+            while _G.fastHitActive do
+                local player = game.Players.LocalPlayer
+                player.muscleEvent:FireServer("punch", "rightHand")
+                player.muscleEvent:FireServer("punch", "leftHand")
+                local character = player.Character
+                if character then
+                    local punchTool = character:FindFirstChild("Punch")
+                    if punchTool then
+                        punchTool:Activate()
+                    end
+                end
+                wait()
+            end
+        end
+
+        -- Auto Farm Rock Toucher
+        local function autoFarmRocks()
+            local selectrock = "Tiny Island Rock"
+            while getgenv().autoFarm do
+                task.wait()
+                local player = game.Players.LocalPlayer
+                if player.Durability.Value >= 0 then
+                    for _, v in pairs(workspace.machinesFolder:GetDescendants()) do
+                        if v.Name == "neededDurability" and v.Value == 0 then
+                            local character = player.Character
+                            if character and character:FindFirstChild("LeftHand") and character:FindFirstChild("RightHand") then
+                                local rock = v.Parent:FindFirstChild("Rock")
+                                if rock then
+                                    firetouchinterest(rock, character.RightHand, 0)
+                                    firetouchinterest(rock, character.RightHand, 1)
+                                    firetouchinterest(rock, character.LeftHand, 0)
+                                    firetouchinterest(rock, character.LeftHand, 1)
+                                    gettool()
+                                end
                             end
                         end
                     end
@@ -57,44 +100,16 @@ local Toggle = Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
             end
         end
 
-        -- Fast Hit Active Logic
-        _G.fastHitActive = Value
-        if Value then
-            local function equipAndModifyPunch()
-                while _G.fastHitActive do
-                    local punch = player.Backpack:FindFirstChild("Punch")
-                    if punch then
-                        punch.Parent = player.Character
-                        if punch:FindFirstChild("attackTime") then
-                            punch.attackTime.Value = 0
-                        end
-                    end
-                    task.wait(0)  -- Prefer task.wait to wait() in the context of Roblox
-                end
-            end
-
-            local function rapidPunch()
-                while _G.fastHitActive do
-                    player.muscleEvent:FireServer("punch", "rightHand")
-                    player.muscleEvent:FireServer("punch", "leftHand")
-                    local character = player.Character
-                    if character then
-                        local punchTool = character:FindFirstChild("Punch")
-                        if punchTool then
-                            punchTool:Activate()
-                        end
-                    end
-                    task.wait(0)  -- Prefer task.wait to wait() in the context of Roblox
-                end
-            end
-            
-            coroutine.wrap(equipAndModifyPunch)()
-            coroutine.wrap(rapidPunch)()
-        else
-            local equipped = player.Character:FindFirstChild("Punch")
-            if equipped then
-                equipped.Parent = player.Backpack
-            end
+        coroutine.wrap(equipAndModifyPunch)()
+        coroutine.wrap(rapidPunch)()
+        coroutine.wrap(autoFarmRocks)()
+    else
+        -- Turn off and move punch tool back
+        local character = game.Players.LocalPlayer.Character
+        local equipped = character:FindFirstChild("Punch")
+        if equipped then
+            equipped.Parent = game.Players.LocalPlayer.Backpack
         end
     end
-})
+end
+
