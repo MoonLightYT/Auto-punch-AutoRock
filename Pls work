@@ -1,0 +1,97 @@
+-- Load Dependencies
+local Library = loadstring(game:HttpGet("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
+
+-- Main Window
+local Window = Library:CreateWindow{
+    Title = "MoonHub",
+    SubTitle = "By Godlike",
+    TabWidth = 125,
+    Size = UDim2.fromOffset(972, 820),
+    Resize = true,
+    MinSize = Vector2.new(470, 380),
+    Acrylic = true,
+    Theme = "Light",
+    MinimizeKey = Enum.KeyCode.RightControl
+}
+
+-- Tabs Definition
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "0" }),
+    AutoWeights = Window:AddTab({ Title = "Auto Weights", Icon = "0" }),
+    AutoRebirth = Window:AddTab({ Title = "Auto Rebirth", Icon = "0" }),
+    AutoKill = Window:AddTab({ Title = "Auto Kill", Icon = "0" }),
+    AutoRock = Window:AddTab({ Title = "Auto Rock", Icon = "0" }),
+    FastGlitch = Window:AddTab({ Title = "Fast Glitch", Icon = "0" }),
+    OPTools = Window:AddTab({ Title = "OP FUNCTIONS🔥", Icon = "0" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "0" })
+}
+
+-- Toggle Creation for AutoFarm
+local Toggle = Tabs.AutoFarm:CreateToggle("MuscleKingGymRock", {
+    Title = "Farm Muscle King Gym Rock",
+    Description = "Farm rocks at Muscle King Gym",
+    Default = false,
+    Callback = function(Value)
+        _G.autoFarm = Value
+        local player = game.Players.LocalPlayer
+        
+        if Value then
+            while _G.autoFarm do
+                task.wait(0.001)
+                if player.Durability.Value >= 5000000 then
+                    for _, v in pairs(game.Workspace.machinesFolder:GetDescendants()) do
+                        if v.Name == "neededDurability" and v.Value == 5000000 and player.Character:FindFirstChild("LeftHand") and player.Character:FindFirstChild("RightHand") then
+                            firetouchinterest(v.Parent.Rock, player.Character.RightHand, 0)
+                            firetouchinterest(v.Parent.Rock, player.Character.RightHand, 1)
+                            firetouchinterest(v.Parent.Rock, player.Character.LeftHand, 0)
+                            firetouchinterest(v.Parent.Rock, player.Character.LeftHand, 1)
+                            gettool()  -- Ensure gettool is defined properly in your script
+                        end
+                    end
+                end
+            end
+        end
+
+        -- Fast Hit Active Logic
+        _G.fastHitActive = Value
+        if Value then
+            local function equipAndModifyPunch()
+                while _G.fastHitActive do
+                    local punch = player.Backpack:FindFirstChild("Punch")
+                    if punch then
+                        punch.Parent = player.Character
+                        if punch:FindFirstChild("attackTime") then
+                            punch.attackTime.Value = 0
+                        end
+                    end
+                    wait(0)
+                end
+            end
+            
+            local function rapidPunch()
+                while _G.fastHitActive do
+                    player.muscleEvent:FireServer("punch", "rightHand")
+                    player.muscleEvent:FireServer("punch", "leftHand")
+                    local character = player.Character
+                    if character then
+                        local punchTool = character:FindFirstChild("Punch")
+                        if punchTool then
+                            punchTool:Activate()
+                        end
+                    end
+                    wait(0)
+                end
+            end
+            
+            coroutine.wrap(equipAndModifyPunch)()
+            coroutine.wrap(rapidPunch)()
+        else
+            local equipped = player.Character:FindFirstChild("Punch")
+            if equipped then
+                equipped.Parent = player.Backpack
+            end
+        end
+    end
+})
