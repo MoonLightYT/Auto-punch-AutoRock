@@ -29,7 +29,7 @@ local Tabs = {
 }
 
 -- Toggle Creation for AutoFarm
-local Toggle = Tabs.AutoFarm:CreateToggle("MuscleKingGymRock", {
+local Toggle = Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
     Title = "Farm Muscle King Gym Rock",
     Description = "Farm rocks at Muscle King Gym",
     Default = false,
