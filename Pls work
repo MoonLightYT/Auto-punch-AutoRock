@@ -28,16 +28,8 @@ local Tabs = {
     Misc = Window:AddTab({ Title = "Misc", Icon = "0" })
 }
 
--- Toggle creation for AutoFarm
-local Toggle = Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
-    Title = "Farm Muscle King Gym Rock",
-    Description = "Farm rocks at Muscle King Gym",
-    Default = false,
-    Callback = function(Value)
-       _G.fastHitActive = false
-getgenv().autoFarm = false
-
-function startAutomation(value)
+-- Define automation function
+local function startAutomation(value)
     _G.fastHitActive = value
     getgenv().autoFarm = value
 
@@ -53,7 +45,7 @@ function startAutomation(value)
                         punch.attackTime.Value = 0
                     end
                 end
-                wait()
+                task.wait()
             end
         end
 
@@ -70,7 +62,7 @@ function startAutomation(value)
                         punchTool:Activate()
                     end
                 end
-                wait()
+                task.wait()
             end
         end
 
@@ -91,7 +83,9 @@ function startAutomation(value)
                                     firetouchinterest(rock, character.RightHand, 1)
                                     firetouchinterest(rock, character.LeftHand, 0)
                                     firetouchinterest(rock, character.LeftHand, 1)
-                                    gettool()
+                                    if typeof(gettool) == "function" then
+                                        gettool()
+                                    end
                                 end
                             end
                         end
@@ -113,3 +107,12 @@ function startAutomation(value)
     end
 end
 
+-- Toggle creation for AutoFarm
+Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
+    Title = "Farm Muscle King Gym Rock",
+    Description = "Farm rocks at Muscle King Gym",
+    Default = false,
+    Callback = function(Value)
+        startAutomation(Value)
+    end
+})
