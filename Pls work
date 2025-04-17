@@ -1,118 +1,122 @@
--- Load Dependencies
-local Library = loadstring(game:HttpGet("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
+-- Flags and loops
+local teleportLoop, autoSizeLoop, infiniteRebirthLoop
+local posLockConnection
+local autoWeightEnabled = false
+local teleportEnabled = false
+local autoSizeEnabled = false
+local posLockEnabled = false
+local rebirthEnabled = false
+local frameHidden = false
 
--- Define the main window
-local Window = Library:CreateWindow{
-    Title = "MoonHub",
-    SubTitle = "By Godlike",
-    TabWidth = 125,
-    Size = UDim2.fromOffset(972, 820),
-    Resize = true,
-    MinSize = Vector2.new(470, 380),
-    Acrylic = true,
-    Theme = "Light",
-    MinimizeKey = Enum.KeyCode.RightControl
-}
-
--- Define tabs
-local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "0" }),
-    AutoWeights = Window:AddTab({ Title = "Auto Weights", Icon = "0" }),
-    AutoRebirth = Window:AddTab({ Title = "Auto Rebirth", Icon = "0" }),
-    AutoKill = Window:AddTab({ Title = "Auto Kill", Icon = "0" }),
-    AutoRock = Window:AddTab({ Title = "Auto Rock", Icon = "0" }),
-    FastGlitch = Window:AddTab({ Title = "Fast Glitch", Icon = "0" }),
-    OPTools = Window:AddTab({ Title = "OP FUNCTIONS🔥", Icon = "0" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "0" })
-}
-
--- Define automation function
-local function startAutomation(value)
-    _G.fastHitActive = value
-    getgenv().autoFarm = value
-
-    if value then
-        -- Punch Tool Handler
-        local function equipAndModifyPunch()
-            while _G.fastHitActive do
-                local player = game.Players.LocalPlayer
-                local punch = player.Backpack:FindFirstChild("Punch")
-                if punch then
-                    punch.Parent = player.Character
-                    if punch:FindFirstChild("attackTime") then
-                        punch.attackTime.Value = 0
-                    end
-                end
-                task.wait()
-            end
-        end
-
-        -- Rapid Punch Activator
-        local function rapidPunch()
-            while _G.fastHitActive do
-                local player = game.Players.LocalPlayer
-                player.muscleEvent:FireServer("punch", "rightHand")
-                player.muscleEvent:FireServer("punch", "leftHand")
-                local character = player.Character
-                if character then
-                    local punchTool = character:FindFirstChild("Punch")
-                    if punchTool then
-                        punchTool:Activate()
-                    end
-                end
-                task.wait()
-            end
-        end
-
-        -- Auto Farm Rock Toucher
-        local function autoFarmRocks()
-            local selectrock = "Tiny Island Rock"
-            while getgenv().autoFarm do
-                task.wait()
-                local player = game.Players.LocalPlayer
-                if player.Durability.Value >= 0 then
-                    for _, v in pairs(workspace.machinesFolder:GetDescendants()) do
-                        if v.Name == "neededDurability" and v.Value == 0 then
-                            local character = player.Character
-                            if character and character:FindFirstChild("LeftHand") and character:FindFirstChild("RightHand") then
-                                local rock = v.Parent:FindFirstChild("Rock")
-                                if rock then
-                                    firetouchinterest(rock, character.RightHand, 0)
-                                    firetouchinterest(rock, character.RightHand, 1)
-                                    firetouchinterest(rock, character.LeftHand, 0)
-                                    firetouchinterest(rock, character.LeftHand, 1)
-                                    if typeof(gettool) == "function" then
-                                        gettool()
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        coroutine.wrap(equipAndModifyPunch)()
-        coroutine.wrap(rapidPunch)()
-        coroutine.wrap(autoFarmRocks)()
-    else
-        -- Turn off and move punch tool back
-        local character = game.Players.LocalPlayer.Character
-        local equipped = character:FindFirstChild("Punch")
-        if equipped then
-            equipped.Parent = game.Players.LocalPlayer.Backpack
-        end
-    end
+-- Toggle teleport loop
+function toggleTeleport()
+	teleportEnabled = not teleportEnabled
+	if teleportEnabled then
+		teleportLoop = task.spawn(function()
+			while task.wait(0) do
+				local char = game.Players.LocalPlayer.Character
+				if char then
+					char:MoveTo(Vector3.new(-8646, 17, -5738))
+				end
+			end
+		end)
+	else
+		if teleportLoop then
+			task.cancel(teleportLoop)
+			teleportLoop = nil
+		end
+	end
 end
 
--- Toggle creation for AutoFarm
-Tabs.AutoRock:CreateToggle("MuscleKingGymRock", {
-    Title = "Farm Muscle King Gym Rock",
-    Description = "Farm rocks at Muscle King Gym",
-    Default = false,
-    Callback = function(Value)
-        startAutomation(Value)
-    end
-})
+-- Toggle visibility of frames ending in "Frame"
+function toggleFrameVisibility()
+	frameHidden = not frameHidden
+	local rSto = game:GetService("ReplicatedStorage")
+	for _, obj in pairs(rSto:GetChildren()) do
+		if obj.Name:match("Frame$") then
+			obj.Visible = not frameHidden
+		end
+	end
+end
+
+-- Toggle auto size loop
+function toggleAutoSize()
+	autoSizeEnabled = not autoSizeEnabled
+	if autoSizeEnabled then
+		autoSizeLoop = task.spawn(function()
+			while task.wait(0) do
+				game:GetService("ReplicatedStorage").rEvents.changeSpeedSizeRemote:InvokeServer("changeSize", 2)
+			end
+		end)
+	else
+		if autoSizeLoop then
+			task.cancel(autoSizeLoop)
+			autoSizeLoop = nil
+		end
+	end
+end
+
+-- Toggle position lock
+function togglePosLock()
+	posLockEnabled = not posLockEnabled
+	if posLockEnabled then
+		local char = game.Players.LocalPlayer.Character
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			local currentPos = char.HumanoidRootPart.CFrame
+			posLockConnection = game:GetService("RunService").Heartbeat:Connect(function()
+				local root = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+				if root then
+					root.CFrame = currentPos
+				end
+			end)
+		end
+	else
+		if posLockConnection then
+			posLockConnection:Disconnect()
+			posLockConnection = nil
+		end
+	end
+end
+
+-- Toggle infinite rebirth loop
+function toggleInfiniteRebirth()
+	rebirthEnabled = not rebirthEnabled
+	if rebirthEnabled then
+		infiniteRebirthLoop = task.spawn(function()
+			while task.wait(0.1) do
+				game:GetService("ReplicatedStorage").rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+			end
+		end)
+	else
+		if infiniteRebirthLoop then
+			task.cancel(infiniteRebirthLoop)
+			infiniteRebirthLoop = nil
+		end
+	end
+end
+
+-- Toggle Auto Weight
+function toggleAutoWeight()
+	autoWeightEnabled = not autoWeightEnabled
+	_G.AutoWeight = autoWeightEnabled
+
+	if autoWeightEnabled then
+		local player = game.Players.LocalPlayer
+		local weightTool = player.Backpack:FindFirstChild("Weight")
+		if weightTool then
+			player.Character.Humanoid:EquipTool(weightTool)
+		end
+
+		task.spawn(function()
+			while _G.AutoWeight do
+				player.muscleEvent:FireServer("rep")
+				task.wait(0.001)
+			end
+		end)
+	else
+		local equipped = game.Players.LocalPlayer.Character:FindFirstChild("Weight")
+		if equipped then
+			equipped.Parent = game.Players.LocalPlayer.Backpack
+		end
+	end
+end
